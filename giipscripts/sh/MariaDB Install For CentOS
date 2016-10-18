@@ -1,0 +1,34 @@
+#!/bin/sh
+# 161017 Sunhill
+# ver.1.0
+# script for giip automation
+
+# System Variables
+sk="{{sk}}"
+lssn="{{lssn}}"
+urlapilog="http://giip.littleworld.net/API/message/put"
+qs="at=$sk&tpsn=$tpsn&ServerData=${#checkfile}&UserData=$checkfile"
+
+#MySQL Service Check
+CHECK_MYSQL=`ps -ef | grep mysql | grep -v grep`
+RESULT=`echo $?`
+if [ ${RESULT} != 0 ]; then
+        # Registering Repogitory
+        wget -O /etc/yum.repos.d/MariaDB.repo http://mariadb.if-not-true-then-false.com/centos/$(rpm -E %centos)/$(uname -i)/10_1
+        yum update -y
+
+        # Install MariaDB
+        yum install MariaDB-server -y
+
+        # Service Start
+        chkconfig mysql on
+        service mysql start
+        cmsg="MariaDB Install complete"
+        qs="at=$sk&tpsn=$tpsn&ServerData=$ServerData&UserData=$cmsg"
+        wget "$urlapilog?$qs" -O giipTmpLog.txt
+else
+        echo 'Already Installed MySQL'
+        cmsg="MariaDB already installed. Please Check Previos Version!"
+        qs="at=$sk&tpsn=$tpsn&ServerData=$ServerData&UserData=$cmsg"
+        wget "$urlapilog?$qs" -O giipTmpLog.txt
+fi
